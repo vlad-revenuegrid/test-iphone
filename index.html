@@ -2,22 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-
-</head>
-<body style="background-color: black; color: white; text-align: center; font-family: sans-serif;">
-
-  <button id="startBtn">Start Recording</button>
-  <button id="stopBtn" disabled>Stop Recording</button>
-  <p id="status"></p>
-  <video id="preview" autoplay muted playsinline style="display:none;"></video>
-
-  <script>
-    function getTimestamp() {
-      const now = new Date();
-      const pad = (n) => n.toString().padStart(2, '0');
-      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+  <title>Camera Recorder</title>
+  <style>
+    body {
+      background-color: black;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
 
+    button {
+      font-size: 24px;
+      padding: 20px 40px;
+      margin: 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #1a73e8;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #555;
+      cursor: default;
+    }
+
+    #preview {
+      display: none;
+    }
+
+    #status {
+      color: white;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <button id="startBtn">▶️ Start</button>
+  <button id="stopBtn" disabled>⏹ Stop</button>
+  <p id="status"></p>
+  <video id="preview" autoplay muted playsinline></video>
+
+  <script>
     let mediaRecorder;
     let recordedChunks = [];
 
@@ -29,15 +59,19 @@
     startBtn.onclick = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-  video: { facingMode: "environment" },
-  audio: true
-});
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 },
+            facingMode: "environment"
+          },
+          audio: true
+        });
 
         preview.srcObject = stream;
-
         recordedChunks = [];
-        mediaRecorder = new MediaRecorder(stream);
 
+        mediaRecorder = new MediaRecorder(stream);
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) recordedChunks.push(e.data);
         };
@@ -48,7 +82,7 @@
           const a = document.createElement("a");
           a.style.display = "none";
           a.href = url;
-          a.download = "recording_" + getTimestamp() + ".webm";
+          a.download = "recording.webm";
           document.body.appendChild(a);
           a.click();
           setTimeout(() => {
